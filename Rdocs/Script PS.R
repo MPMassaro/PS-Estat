@@ -1,5 +1,8 @@
-require(pacman)
-p_load("tidyverse")
+################################################################################
+
+########                          Preparativos                          ########
+
+require(tidyverse)
 
 estat_colors <- c(
   "#A11D21", "#003366", "#CC9900",
@@ -28,27 +31,34 @@ estat_theme <- function(...) {
 }
 
 
-setwd("D:\\Documentos\\UnB\\PS Estat\\Script")
-df=read_csv("Scooby.csv")
+#setwd("D:\\Documentos\\UnB\\PS Estat\\Script")
+df=read_csv("Banco\\Scooby.csv")
 df=select(df,-c(1,2,3))
 df$format=fct_infreq(df$format)
 levels(df$format)=c("Série","Filme","CrossOver")
 
+################################################################################
 
-####### Análise 1 #######
+#-----------------------####### Análise 1 #######-------------------------------
 
-resto=data.frame(
-  decada=c(1960,1960,1980,2020),
-  format=c("Filme","CrossOver","CrossOver","CrossOver"),
-  n=c(0,0,0,0),
-  stringsAsFactors=T
+df = df %>%
+  mutate(decada=as.character(floor(year(date_aired)/10)*10))
+
+graf1=data.frame(
+  decada=rep(unique(graf1$decada),each=3),
+  format=rep(unique(graf1$format),length(unique(graf1$decada)))
 )
 
-graf1 = df %>%
-  mutate(decada=floor(year(date_aired)/10)*10,n=1) %>%
-  group_by(decada,format) %>%
-  summarise(n=sum(n)) %>%
-  rbind(resto) %>%
+n=c()
+for(i in 1:21){
+  dec=graf1[i,1]
+  form=graf1[i,2]
+  n=c(n,nrow(filter(df,decada==dec & format==form)))
+}
+
+graf1 = graf1 %>%
+  mutate(n=n) %>%
+  group_by(decada) %>%
   mutate(freq_relativa=round(n/sum(n)*100,1))
 
 porcentagens <- str_c(graf1$freq_relativa, "%") %>%
@@ -64,6 +74,4 @@ ggplot(graf1)+
   labs(x="Décadas",y="Número de Lançamentos",fill="Formato de Lançamento:")+
   estat_theme()
 
-ggsave("análise-1.1.pdf",path="D:\\Documentos\\UnB\\PS Estat\\Imagens",
-       width=300,height=176,units="mm")
-
+ggsave("análise-1.1.pdf",path="Resultados",width=300,height=176,units="mm")
