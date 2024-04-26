@@ -30,8 +30,6 @@ estat_theme <- function(...) {
   )
 }
 
-
-#setwd("D:\\Documentos\\UnB\\PS Estat\\Script")
 df=read_csv("Banco\\Scooby.csv")
 df=select(df,-c(1,2,3))
 df$format=fct_infreq(df$format)
@@ -45,8 +43,8 @@ df = df %>%
   mutate(decada=as.character(floor(year(date_aired)/10)*10))
 
 graf1=data.frame(
-  decada=rep(unique(graf1$decada),each=3),
-  format=rep(unique(graf1$format),length(unique(graf1$decada)))
+  decada=rep(unique(df$decada),each=3),
+  format=rep(unique(df$format),length(unique(df$decada)))
 )
 
 n=c()
@@ -64,14 +62,16 @@ graf1 = graf1 %>%
 porcentagens <- str_c(graf1$freq_relativa, "%") %>%
   str_replace("\\.", ",")
 
-legendas <- str_squish(str_c(graf1$n, " (", porcentagens, ")"))
+legendas <- str_squish(str_c(graf1$n, "(", porcentagens, ")"))
 
 ggplot(graf1)+
   aes(x=as.character(decada),y=n,fill=format,label=legendas)+
   geom_col(position=position_dodge2(preserve="single",padding=0))+
   geom_text(position = position_dodge(width = 0.9),
-            vjust = -0.5, hjust = 0.5,size = 2.4)+
+            vjust = -0.5, hjust = 0.45,size = 1.575)+
   labs(x="Décadas",y="Número de Lançamentos",fill="Formato de Lançamento:")+
   estat_theme()
 
-ggsave("análise-1.1.pdf",path="Resultados",width=300,height=176,units="mm")
+ggsave("análise-1.1.pdf",path="Resultados",width=158,height=93,units="mm")
+
+
