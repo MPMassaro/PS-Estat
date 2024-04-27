@@ -62,16 +62,30 @@ graf1 = graf1 %>%
 porcentagens <- str_c(graf1$freq_relativa, "%") %>%
   str_replace("\\.", ",")
 
-legendas <- str_squish(str_c(graf1$n, "(", porcentagens, ")"))
+legendas <- str_squish(str_c(graf1$n, " (", porcentagens, ")"))
 
 ggplot(graf1)+
   aes(x=as.character(decada),y=n,fill=format,label=legendas)+
   geom_col(position=position_dodge2(preserve="single",padding=0))+
   geom_text(position = position_dodge(width = 0.9),
-            vjust = -0.5, hjust = 0.45,size = 1.575)+
+            vjust = -0.7, hjust = 0.1,size = 2,angle=45)+
   labs(x="Décadas",y="Número de Lançamentos",fill="Formato de Lançamento:")+
+  lims(y=c(0,185))+
   estat_theme()
 
 ggsave("análise-1.1.pdf",path="Resultados",width=158,height=93,units="mm")
 
+ggplot(graf1)+
+  aes(x=decada,y=n,group=format,colour=format) +
+  geom_line(size = 1) +
+  geom_point(size = 2)+
+  #geom_text(vjust = -0.5, hjust = 0.45,size = 1.575,angle=45)+
+  labs(x="Décadas",y="Número de Lançamentos",color="Formato de Lançamento:")+
+  estat_theme()
 
+ggsave("análise-1.2.pdf",path="Resultados",width=158,height=93,units="mm")
+
+graf1 %>%
+  group_by(format) %>%
+  summarise(n=sum(n)) %>%
+  mutate(freq_relativa=n/sum(n))
