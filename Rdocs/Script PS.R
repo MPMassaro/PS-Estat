@@ -89,3 +89,40 @@ graf1 %>%
   group_by(format) %>%
   summarise(n=sum(n)) %>%
   mutate(freq_relativa=n/sum(n))
+
+################################################################################
+
+#-----------------------####### Análise 2 #######-------------------------------
+
+df %>%
+  filter(season %in% c("1","2","3","4")) %>%
+  ggplot()+
+  aes(x=season,y=imdb)+
+  geom_boxplot(fill=c("#A11D21"),width=0.5)+
+  stat_summary(fun="mean",geom="point",shape=23,
+               size=3,fill="white")+
+  estat_theme()+
+  labs(x="Temporada",y="Nota IMDB")
+
+ggsave("análise-2.1.pdf",path="Resultados",width=158,height=93,units="mm")
+
+require(car)
+
+leveneTest(imdb~season,data=filter(df,season %in% c("1","2","3","4")))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
