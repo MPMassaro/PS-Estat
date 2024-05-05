@@ -90,6 +90,8 @@ graf1 %>%
   summarise(n=sum(n)) %>%
   mutate(freq_relativa=n/sum(n))
 
+tapply(graf1$n,graf1$format,sum)
+
 ################################################################################
 
 #-----------------------####### Análise 2 #######-------------------------------
@@ -110,8 +112,8 @@ require(car)
 
 leveneTest(imdb~season,data=filter(df,season %in% c("1","2","3","4")))
 
-
-
+df %>%
+  count(season)
 
 
 
