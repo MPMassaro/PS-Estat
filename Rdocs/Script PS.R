@@ -34,14 +34,14 @@ estat_theme <- function(...) {
 print_quadro_resumo <- function(data, title="Medidas resumo da(o) [nome da variável]", label="quad:quadro_resumo1")
 {
   data <- data %>%
-    summarize(`Média` = round(mean(displ),2),
-              `Desvio Padrão` = round(sd(displ),2),
-              `Variância` = round(var(displ),2),
-              `Mínimo` = round(min(displ),2),
-              `1º Quartil` = round(quantile(displ, probs = .25),2),
-              `Mediana` = round(quantile(displ, probs = .5),2),
-              `3º Quartil` = round(quantile(displ, probs = .75),2),
-              `Máximo` = round(max(displ),2)) %>%
+    summarize(`Média` = round(mean(imdb),2),
+              `Desvio Padrão` = round(sd(imdb),2),
+              `Variância` = round(var(imdb),2),
+              `Mínimo` = round(min(imdb),2),
+              `1º Quartil` = round(quantile(imdb, probs = .25),2),
+              `Mediana` = round(quantile(imdb, probs = .5),2),
+              `3º Quartil` = round(quantile(imdb, probs = .75),2),
+              `Máximo` = round(max(imdb),2)) %>%
     t() %>% 
     as.data.frame() %>%
     rownames_to_column()
@@ -113,6 +113,9 @@ df=read_csv("Banco\\Scooby.csv")
 df=select(df,-c(1,2,3))
 df$format=fct_infreq(df$format)
 levels(df$format)=c("Série","Filme","CrossOver")
+
+df$setting_terrain=fct_infreq(df$setting_terrain)
+levels(df$setting_terrain)
 
 ################################################################################
 
@@ -195,15 +198,21 @@ df %>%
   count(season)
 
 df %>%
+  filter(season %in% c("1","2","3","4")) %>%
   group_by(season) %>%
   print_quadro_resumo()
 
 
+################################################################################
 
+#-----------------------####### Análise 3 #######-------------------------------
 
+unique(df$setting_terrain)
 
-
-
+df %>%
+  group_by(setting_terrain,trap_work_first) %>%
+  mutate(freq=n()) %>%
+  summarise(freq=sum(freq))
 
 
 
