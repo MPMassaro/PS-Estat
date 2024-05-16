@@ -2,7 +2,15 @@
 
 ########                          Preparativos                          ########
 
+
+###############################    Pacotes    ##################################
+
 require(tidyverse)
+require(reshape2)
+require(rcompanion)
+require(nortest)
+
+################################################################################
 
 estat_colors <- c(
   "#A11D21", "#003366", "#CC9900",
@@ -31,17 +39,17 @@ estat_theme <- function(...) {
 }
 
 
-print_quadro_resumo <- function(data, title="Medidas resumo da(o) [nome da variável]", label="quad:quadro_resumo1")
+print_quadro_resumo <- function(data, var_name, title="Medidas resumo da(o) [nome da variável]", label="quad:quadro_resumo1")
 {
   data <- data %>%
-    summarize(`Média` = round(mean(imdb),2),
-              `Desvio Padrão` = round(sd(imdb),2),
-              `Variância` = round(var(imdb),2),
-              `Mínimo` = round(min(imdb),2),
-              `1º Quartil` = round(quantile(imdb, probs = .25),2),
-              `Mediana` = round(quantile(imdb, probs = .5),2),
-              `3º Quartil` = round(quantile(imdb, probs = .75),2),
-              `Máximo` = round(max(imdb),2)) %>%
+    summarize(`Média` = round(mean(!!sym(var_name)),2),
+              `Desvio Padrão` = round(sd(!!sym(var_name)),2),
+              `Variância` = round(var(!!sym(var_name)),2),
+              `Mínimo` = round(min(!!sym(var_name)),2),
+              `1º Quartil` = round(quantile(!!sym(var_name), probs = .25),2),
+              `Mediana` = round(quantile(!!sym(var_name), probs = .5),2),
+              `3º Quartil` = round(quantile(!!sym(var_name), probs = .75),2),
+              `Máximo` = round(max(!!sym(var_name)),2)) %>%
     t() %>% 
     as.data.frame() %>%
     rownames_to_column()
@@ -113,9 +121,7 @@ df=read_csv("Banco\\Scooby.csv")
 df=select(df,-c(1,2,3))
 df$format=fct_infreq(df$format)
 levels(df$format)=c("Série","Filme","CrossOver")
-
-df$setting_terrain=fct_infreq(df$setting_terrain)
-levels(df$setting_terrain)
+df$season=factor(df$season,levels=c("1","2","3","4"),labels=c("1º","2º","3º","4º"))
 
 ################################################################################
 
@@ -179,29 +185,29 @@ tapply(graf1$n,graf1$format,sum)
 #-----------------------####### Análise 2 #######-------------------------------
 
 df %>%
-  filter(season %in% c("1","2","3","4")) %>%
+  filter(season %in% c("1º","2º","3º","4º")) %>%
   ggplot()+
   aes(x=season,y=imdb)+
   geom_boxplot(fill=c("#A11D21"),width=0.5)+
   stat_summary(fun="mean",geom="point",shape=23,
                size=3,fill="white")+
   estat_theme()+
-  labs(x="Temporada",y="Nota IMDB")
+  labs(x="Temporada",y="Nota IMDB")+
+  scale_y_continuous(breaks=c(2,3,4,5,6,7,8,9))
 
 ggsave("análise-2.1.pdf",path="Resultados",width=158,height=93,units="mm")
 
 require(car)
 
-leveneTest(imdb~season,data=filter(df,season %in% c("1","2","3","4")))
+leveneTest(imdb~season,data=filter(df,season %in% c("1º","2º","3º","4º")))
 
 df %>%
   count(season)
 
 df %>%
-  filter(season %in% c("1","2","3","4")) %>%
+  filter(season %in% c("1º","2º","3º","4º")) %>%
   group_by(season) %>%
-  print_quadro_resumo()
-
+  print_quadro_resumo(var_name="imdb")
 
 ################################################################################
 
@@ -210,11 +216,82 @@ df %>%
 unique(df$setting_terrain)
 
 df %>%
+  filter(!is.na(trap_work_first))%>%
+  group_by(setting_terrain) %>%
+  mutate(freq=1) %>%
+  summarise(freq=sum(freq)) %>%
+  arrange(by=-freq) %>%
+  mutate(freq_rel=format(round(freq/sum(freq)*100,2),nsmall=2))
+
+graf3 = df %>%
+  filter(!is.na(trap_work_first) & setting_terrain %in% c("Urban","Rural","Forest")) %>%
   group_by(setting_terrain,trap_work_first) %>%
-  mutate(freq=n()) %>%
+  mutate(freq=1) %>%
   summarise(freq=sum(freq))
+  
+graf3$setting_terrain=factor(graf3$setting_terrain,levels=c("Urban","Rural","Forest"),
+                             labels=c("Urbano","Rural","Floresta"))
+graf3$trap_work_first=factor(graf3$trap_work_first,levels=c(TRUE,FALSE),
+                             labels=c("Sim","Não"))
+
+graf3 = graf3 %>%
+  mutate(freq=freq) %>%
+  group_by(setting_terrain) %>%
+  mutate(freq_relativa=round(freq/sum(freq)*100,1))
+
+porcentagens <- str_c(graf3$freq_relativa, "%") %>% str_replace("
+\\.", ",")
+legendas <- str_squish(str_c(graf3$freq, " (", porcentagens, ")")
+)
+
+ggplot(graf3)+
+  aes(x=setting_terrain,y=freq,fill=trap_work_first,label=legendas)+
+  geom_col(position="dodge")+
+  geom_text(position = position_dodge(width = .9),
+    vjust = -0.5, hjust = 0.5,
+    size = 3) +
+  estat_theme()+
+  labs(x="Terreno",y="Frequência",fill="Funcionou na primeira vez:")+
+  lims(y=c(0,70))
+
+ggsave("análise-3.1.pdf",path="Resultados",width=158,height=93,units="mm")
 
 
 
+# Teste Qui-Quadrado
 
+df %>%
+  filter(!is.na(trap_work_first)) %>%
+  group_by(setting_terrain,trap_work_first) %>%
+  mutate(freq=1) %>%
+  summarise(freq=sum(freq)) %>%
+  dcast(setting_terrain~trap_work_first) %>%
+  mutate_if(is.numeric, ~replace_na(., 0)) %>%
+  select(c(`TRUE`,`FALSE`)) %>%
+  as.matrix() %>%
+  cramerV()
+
+
+################################################################################
+
+#-----------------------####### Análise 4 #######-------------------------------
+
+df %>%
+  ggplot()+
+  aes(x=imdb,y=engagement) %>%
+  geom_point(colour="#A11D21",size=1)+
+  estat_theme()+
+  labs(y="Engajamento",x="Nota IMDb")+
+  scale_x_continuous(breaks=c(2,3,4,5,6,7,8,9))
+
+ggsave("análise-4.1.pdf",path="Resultados",width=158,height=93,units="mm")
+
+ad.test(df$engagement)
+ad.test(df$imdb)
+
+cor(df$engagement,df$imdb)
+
+
+
+adtest
 
