@@ -237,7 +237,7 @@ graf3$trap_work_first=factor(graf3$trap_work_first,levels=c(TRUE,FALSE),
 graf3 = graf3 %>%
   mutate(freq=freq) %>%
   group_by(setting_terrain) %>%
-  mutate(freq_relativa=round(freq/sum(freq)*100,1))
+  mutate(freq_relativa=round(freq/sum(freq)*100,2))
 
 porcentagens <- str_c(graf3$freq_relativa, "%") %>% str_replace("
 \\.", ",")
@@ -261,7 +261,7 @@ ggsave("análise-3.1.pdf",path="Resultados",width=158,height=93,units="mm")
 # Teste Qui-Quadrado
 
 df %>%
-  filter(!is.na(trap_work_first)) %>%
+  filter(!is.na(trap_work_first) & setting_terrain %in% c("Urban","Rural","Forest")) %>%
   group_by(setting_terrain,trap_work_first) %>%
   mutate(freq=1) %>%
   summarise(freq=sum(freq)) %>%
@@ -269,7 +269,7 @@ df %>%
   mutate_if(is.numeric, ~replace_na(., 0)) %>%
   select(c(`TRUE`,`FALSE`)) %>%
   as.matrix() %>%
-  cramerV()
+  chisq.test()
 
 
 ################################################################################
