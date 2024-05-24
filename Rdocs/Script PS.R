@@ -121,7 +121,7 @@ df=read_csv("Banco\\Scooby.csv")
 df=select(df,-c(1,2,3))
 df$format=fct_infreq(df$format)
 levels(df$format)=c("Série","Filme","CrossOver")
-df$season=factor(df$season,levels=c("1","2","3","4"),labels=c("1º","2º","3º","4º"))
+df$season=factor(df$season,levels=c("1","2","3","4"),labels=c("1ª","2ª","3ª","4ª"))
 
 ################################################################################
 
@@ -185,7 +185,7 @@ tapply(graf1$n,graf1$format,sum)
 #-----------------------####### Análise 2 #######-------------------------------
 
 df %>%
-  filter(season %in% c("1º","2º","3º","4º")) %>%
+  filter(season %in% c("1ª","2ª","3ª","4ª")) %>%
   ggplot()+
   aes(x=season,y=imdb)+
   geom_boxplot(fill=c("#A11D21"),width=0.5)+
@@ -199,13 +199,13 @@ ggsave("análise-2.1.pdf",path="Resultados",width=158,height=93,units="mm")
 
 require(car)
 
-leveneTest(imdb~season,data=filter(df,season %in% c("1º","2º","3º","4º")))
+leveneTest(imdb~season,data=filter(df,season %in% c("1ª","2ª","3ª","4ª")))
 
 df %>%
   count(season)
 
 df %>%
-  filter(season %in% c("1º","2º","3º","4º")) %>%
+  filter(season %in% c("1ª","2ª","3ª","4ª")) %>%
   group_by(season) %>%
   print_quadro_resumo(var_name="imdb")
 
@@ -278,13 +278,24 @@ df %>%
 
 df %>%
   ggplot()+
-  aes(x=imdb,y=engagement) %>%
-  geom_point(colour="#A11D21",size=1)+
+  aes(x=engagement,y=imdb) %>%
+  geom_point(colour="#A11D21",size=2.5,alpha=0.6)+
   estat_theme()+
-  labs(y="Engajamento",x="Nota IMDb")+
-  scale_x_continuous(breaks=c(2,3,4,5,6,7,8,9))
+  labs(y="Nota IMDb",x="Engajamento")+
+  scale_y_continuous(breaks=c(2,3,4,5,6,7,8,9))
 
 ggsave("análise-4.1.pdf",path="Resultados",width=158,height=93,units="mm")
+
+df %>%
+  ggplot()+
+  aes(y=engagement)+
+  geom_boxplot(fill="#A11D21")+
+  estat_theme()+
+  labs(y="Engajameno")+
+  scale_y_continuous(breaks=c(seq(100,275,25)))
+
+df %>%
+  print_quadro_resumo("engagement")
 
 ad.test(df$engagement)
 ad.test(df$imdb)
