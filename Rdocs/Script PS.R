@@ -9,6 +9,7 @@ require(tidyverse)
 require(reshape2)
 require(rcompanion)
 require(nortest)
+require(car)
 
 ################################################################################
 
@@ -147,21 +148,21 @@ graf1 = graf1 %>%
   group_by(decada) %>%
   mutate(freq_relativa=round(n/sum(n)*100,1))
 
-porcentagens <- str_c(graf1$freq_relativa, "%") %>%
-  str_replace("\\.", ",")
-
-legendas <- str_squish(str_c(graf1$n, " (", porcentagens, ")"))
-
-ggplot(graf1)+
-  aes(x=as.character(decada),y=n,fill=format,label=legendas)+
-  geom_col(position=position_dodge2(preserve="single",padding=0))+
-  geom_text(position = position_dodge(width = 0.9),
-            vjust = -0.7, hjust = 0.1,size = 2,angle=45)+
-  labs(x="Décadas",y="Número de Lançamentos",fill="Formato de Lançamento:")+
-  lims(y=c(0,185))+
-  estat_theme()
-
-ggsave("análise-1.1.pdf",path="Resultados",width=158,height=93,units="mm")
+#porcentagens <- str_c(graf1$freq_relativa, "%") %>%
+#  str_replace("\\.", ",")
+#
+#legendas <- str_squish(str_c(graf1$n, " (", porcentagens, ")"))
+#
+#ggplot(graf1)+
+#  aes(x=as.character(decada),y=n,fill=format,label=legendas)+
+#  geom_col(position=position_dodge2(preserve="single",padding=0))+
+#  geom_text(position = position_dodge(width = 0.9),
+#            vjust = -0.7, hjust = 0.1,size = 2,angle=45)+
+#  labs(x="Décadas",y="Número de Lançamentos",fill="Formato de Lançamento:")+
+#  lims(y=c(0,185))+
+#  estat_theme()
+#
+#ggsave("análise-1.1.pdf",path="Resultados",width=158,height=93,units="mm")
 
 ggplot(graf1)+
   aes(x=decada,y=n,group=format,colour=format) +
@@ -177,8 +178,6 @@ graf1 %>%
   group_by(format) %>%
   summarise(n=sum(n)) %>%
   mutate(freq_relativa=n/sum(n))
-
-tapply(graf1$n,graf1$format,sum)
 
 ################################################################################
 
@@ -197,7 +196,9 @@ df %>%
 
 ggsave("análise-2.1.pdf",path="Resultados",width=158,height=93,units="mm")
 
-require(car)
+df %>%
+  group_by(season) %>%
+  summarise(n=shapiro.test(imdb)$p.value)
 
 leveneTest(imdb~season,data=filter(df,season %in% c("1ª","2ª","3ª","4ª")))
 
@@ -340,4 +341,8 @@ graf5 %>%
   group_by(variable) %>%
   print_quadro_resumo("engagement")
 
+graf5 %>%
+  group_by(variable) %>%
+  summarise(teste=shapiro.test(engagement)$p.value)
 
+bartlett.test(engagement~variable,data=graf5)
