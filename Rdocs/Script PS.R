@@ -346,3 +346,27 @@ graf5 %>%
   summarise(teste=shapiro.test(engagement)$p.value)
 
 bartlett.test(engagement~variable,data=graf5)
+
+attach(graf5)
+
+## ANOVA
+
+anovap=aov(engagement~variable);summary(anovap)
+
+### Pressupostos ###
+
+# Normalidade dos resíduos
+
+resid=anovap$residuals
+
+ad.test(resid)
+
+# Não correlação dos resíduos
+
+QMRes=summary(anovap)[[1]][2,3]
+
+ajuste=anovap$fitted.values
+
+plot(ajuste,resid/sqrt(QMRes))
+
+
