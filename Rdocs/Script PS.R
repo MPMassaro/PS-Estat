@@ -368,5 +368,3 @@ QMRes=summary(anovap)[[1]][2,3]
 ajuste=anovap$fitted.values
 
 plot(ajuste,resid/sqrt(QMRes))
-
-
