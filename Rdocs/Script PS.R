@@ -309,7 +309,7 @@ cor(df$engagement,df$imdb)
 #-----------------------####### Análise 5 #######-------------------------------
 
 caught=c("caught_fred","caught_daphnie","caught_velma",
-         "caught_shaggy","caught_scooby","caught_other")
+         "caught_shaggy","caught_scooby","caught_other","caught_not")
 
 graf5 = df %>%
   select(engagement,caught) %>%
@@ -322,9 +322,9 @@ graf5 %>%
 
 graf5$variable=factor(graf5$variable,levels=c("caught_fred","caught_scooby",
                                               "caught_shaggy","caught_velma",
-                                              "caught_daphnie","caught_other"),
+                                              "caught_daphnie","caught_other","caught_not"),
                       labels=c("Fred","Scooby","Salsicha",
-                               "Velma","Daphnie","Outros"))
+                               "Velma","Daphnie","Outros","Ninguém"))
 
 graf5 %>%
   ggplot()+
@@ -332,7 +332,7 @@ graf5 %>%
   geom_boxplot(fill="#A11D21",width=0.5)+
   stat_summary(fun="mean",geom="point",shape=23,size=3,fill="white")+
   estat_theme()+
-  labs(x="Quem capturou",y="Engajamento")+
+  labs(x="Personagem",y="Engajamento")+
   scale_y_continuous(breaks=c(100,125,150,175,200,225,250))
 
 ggsave("análise-5.1.pdf",path="Resultados",width=158,height=93,units="mm")
