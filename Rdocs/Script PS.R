@@ -292,14 +292,33 @@ ggsave("análise-4.1.pdf",path="Resultados",width=158,height=93,units="mm")
 
 df %>%
   ggplot()+
-  aes(y=engagement)+
+  aes(x=factor(" "),y=engagement)+
   geom_boxplot(fill="#A11D21")+
+  guides(fill=FALSE) +
+  stat_summary(fun="mean", geom="point", shape=23, size=3, fill="white")+
   estat_theme()+
-  labs(y="Engajameno")+
+  labs(x="",y="Engajameno")+
   scale_y_continuous(breaks=c(seq(100,275,25)))
+
+ggsave("análise-4.2.pdf",path="Resultados",width=158,height=93,units="mm")
+
+df %>%
+  ggplot()+
+  aes(x=factor(" "),y=imdb)+
+  geom_boxplot(fill="#A11D21")+
+  guides(fill=FALSE) +
+  stat_summary(fun="mean", geom="point", shape=23, size=3, fill="white")+
+  estat_theme()+
+  labs(x="",y="Nota IMDb")+
+  scale_y_continuous(breaks=c(seq(1,10,1)))
+
+ggsave("análise-4.3.pdf",path="Resultados",width=158,height=93,units="mm")
 
 df %>%
   print_quadro_resumo("engagement")
+
+df %>%
+  print_quadro_resumo("imdb")
 
 ad.test(df$engagement)
 ad.test(df$imdb)
