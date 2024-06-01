@@ -10,6 +10,7 @@ require(reshape2)
 require(rcompanion)
 require(nortest)
 require(car)
+require(gridExtra)
 
 ################################################################################
 
@@ -129,7 +130,7 @@ df$season=factor(df$season,levels=c("1","2","3","4"),labels=c("1ª","2ª","3ª",
 #-----------------------####### Análise 1 #######-------------------------------
 
 df = df %>%
-  mutate(decada=as.character(floor(year(date_aired)/10)*10))
+  mutate(decada=paste(floor(year(date_aired)/10)*10,"'s",sep=""))
 
 graf1=data.frame(
   decada=rep(unique(df$decada),each=3),
@@ -143,11 +144,6 @@ for(i in 1:21){
   n=c(n,nrow(filter(df,decada==dec & format==form)))
 }
 
-graf1 = graf1 %>%
-  mutate(n=n) %>%
-  group_by(decada) %>%
-  mutate(freq_relativa=round(n/sum(n)*100,1))
-
 ggplot(graf1)+
   aes(x=decada,y=n,group=format,colour=format) +
   geom_line(size = 1) +
@@ -156,7 +152,10 @@ ggplot(graf1)+
   labs(x="Décadas",y="Número de Lançamentos",color="Formato de Lançamento:")+
   estat_theme()
 
-ggsave("análise-1.2.pdf",path="Resultados",width=158,height=93,units="mm")
+ggsave("análise-1.1.pdf",path="Resultados",width=158,height=93,units="mm")
+
+graf1 = graf1 %>%
+  mutate(n=n)
 
 graf1 %>%
   group_by(format) %>%
@@ -176,7 +175,7 @@ df %>%
                size=3,fill="white")+
   estat_theme()+
   labs(x="Temporada",y="Nota IMDB")+
-  scale_y_continuous(breaks=c(2,3,4,5,6,7,8,9))
+  scale_y_continuous(breaks=seq(1,9,2),limits=c(2,9))
 
 ggsave("análise-2.1.pdf",path="Resultados",width=158,height=93,units="mm")
 
@@ -191,9 +190,13 @@ df %>%
   group_by(season) %>%
   print_quadro_resumo(var_name="imdb")
 
+# Testes de Normalidade
+
+shapiro.test(df$imdb)$p.value
+
 # Teste de Homoscedasticidade
 
-leveneTest(imdb~season,data=filter(df,season %in% c("1ª","2ª","3ª","4ª")))
+bartlett.test(imdb~season,data=filter(df,season %in% c("1ª","2ª","3ª","4ª")))
 
 # Teste ANOVA - Comparação de Médias
 
@@ -283,14 +286,14 @@ df %>%
 df %>%
   ggplot()+
   aes(x=engagement,y=imdb) %>%
-  geom_point(colour="#A11D21",size=2.5,alpha=0.6)+
+  geom_point(colour="#A11D21",size=2.5,alpha=0.35)+
   estat_theme()+
   labs(y="Nota IMDb",x="Engajamento")+
   scale_y_continuous(breaks=c(2,3,4,5,6,7,8,9))
 
 ggsave("análise-4.1.pdf",path="Resultados",width=158,height=93,units="mm")
 
-df %>%
+p1=df %>%
   ggplot()+
   aes(x=factor(" "),y=engagement)+
   geom_boxplot(fill="#A11D21")+
@@ -300,9 +303,7 @@ df %>%
   labs(x="",y="Engajameno")+
   scale_y_continuous(breaks=c(seq(100,275,25)))
 
-ggsave("análise-4.2.pdf",path="Resultados",width=158,height=93,units="mm")
-
-df %>%
+p2=df %>%
   ggplot()+
   aes(x=factor(" "),y=imdb)+
   geom_boxplot(fill="#A11D21")+
@@ -312,7 +313,7 @@ df %>%
   labs(x="",y="Nota IMDb")+
   scale_y_continuous(breaks=c(seq(1,10,1)))
 
-ggsave("análise-4.3.pdf",path="Resultados",width=158,height=93,units="mm")
+ggsave("análise-4.2.pdf",arrangeGrob(p1,p2,nrow=1),path="Resultados",width=158,height=93,units="mm")
 
 df %>%
   print_quadro_resumo("engagement")
@@ -320,8 +321,8 @@ df %>%
 df %>%
   print_quadro_resumo("imdb")
 
-ad.test(df$engagement)
-ad.test(df$imdb)
+shapiro.test(df$engagement)$p.value
+shapiro.test(df$imdb)$p.value
 
 cor(df$engagement,df$imdb)
 
